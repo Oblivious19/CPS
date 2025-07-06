@@ -15,6 +15,13 @@ dotenv.config();
 
 const startServer = async () => {
   try {
+    console.log('🚀 Starting DSA Learning Backend...');
+    console.log('Environment variables check:');
+    console.log('- MONGODB_URI:', process.env.MONGODB_URI ? '✅ Set' : '❌ Missing');
+    console.log('- DATABASE_NAME:', process.env.DATABASE_NAME ? '✅ Set' : '❌ Missing');
+    console.log('- JWT_SECRET:', process.env.JWT_SECRET ? '✅ Set' : '❌ Missing');
+    console.log('- NODE_ENV:', process.env.NODE_ENV || 'development');
+    
     // Initialize the application environment for the chat system
     const config = await initializeEnvironment();
     
@@ -57,22 +64,32 @@ const startServer = async () => {
     app.use(errorHandler);
 
     // MongoDB connection
-    await mongoose.connect(process.env.MONGODB_URI!, {
+    console.log('🔌 Connecting to MongoDB...');
+    if (!process.env.MONGODB_URI) {
+      throw new Error('MONGODB_URI environment variable is required');
+    }
+    
+    await mongoose.connect(process.env.MONGODB_URI, {
       dbName: process.env.DATABASE_NAME
     });
+    console.log('✅ MongoDB connected successfully');
 
     // Start server
     const server = app.listen(PORT, () => {
-      // Server started silently
+      console.log(`🚀 Server running on port ${PORT}`);
+      console.log(`🌐 Health check: http://localhost:${PORT}/`);
     });
 
     // Graceful shutdown
     const gracefulShutdown = (signal: string) => {
+      console.log(`\n🛑 Received ${signal}. Starting graceful shutdown...`);
       server.close(async () => {
         try {
           await mongoose.connection.close();
+          console.log('✅ Graceful shutdown completed');
           process.exit(0);
         } catch (error) {
+          console.error('❌ Error during shutdown:', error);
           process.exit(1);
         }
       });
@@ -82,6 +99,7 @@ const startServer = async () => {
     process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
   } catch (error) {
+    console.error('❌ Failed to start server:', error);
     process.exit(1);
   }
 };
