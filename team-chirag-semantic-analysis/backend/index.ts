@@ -23,8 +23,15 @@ const startServer = async () => {
 
     // CORS configuration
     app.use(cors({
-      origin: ['http://localhost:5173', 'http://localhost:3000'], // Support both Vite and standard React ports
-      credentials: true
+      origin: [
+        'http://localhost:5173', 
+        'http://localhost:3000',
+        'https://query-2map-frontend-cm4w.onrender.com',
+        process.env.FRONTEND_URL
+      ].filter(Boolean), // Remove any undefined values
+      credentials: true,
+      methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+      allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With']
     }));
 
     // Middleware
